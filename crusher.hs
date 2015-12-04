@@ -275,16 +275,16 @@ generateSlides :: Grid -> Int -> [Slide]
 generateSlides b n = filter (validSlide b) (generateAllSlides b)
 
 generateAllSlides :: Grid -> Grid -> [Slide]
-generateAllSlides ((a,b):xs)
+generateAllSlides ((x,y):xs)
 	| null xs = []
-	| otherwise concat[generatePossibleSlides (a,b), generateAllSlides xs]
+	| otherwise concat[generatePossibleSlides (x,y), generateAllSlides xs]
 
 generatePossibleSlides :: Point -> [Slide]
 generatePossibleSlides (a,b) =
-	[((a,b),(a+1,b+1)),((a,b),(a+1,b)),((a,b),(a,b+1)),((a,b),(a-1,b-1)),((a,b),(a-1,b)),((a,b,),(a,b-1))]
+	[((x,y),(x+1,y+1)),((x,y),(x+1,y)),((x,y),(x,y+1)),((x,y),(x-1,y-1)),((x,y),(x-1,y)),((x,y),(x,y-1))]
 
 validSlide :: Grid -> Slide -> Bool
-validSlide grid (_,(a,b)) = elem (a,b) grid
+validSlide grid (_,(x,y)) = elem (x,y) grid
 --
 -- generateLeaps
 --
