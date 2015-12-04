@@ -438,7 +438,18 @@ validJump grid (_, (x1,y1), (x2,y2)) = (elem (x1,y1) grid) && (elem (x2,y2) grid
 --
 
 -- moveGenerator :: State -> [Slide] -> [Jump] -> Piece -> [Move]
--- moveGenerator state slides jumps player = -- To Be Completed										 
+moveGenerator state slides jumps player = validSlideMoves state slides player ++ validJumpMoves
+
+-- filtered state to a list a of tiles with the players pieces
+validSlideMoves :: State -> [Slide] -> Piece -> 
+validSlideMoves state (((x1,y1),_):xs) player = validSlideMove2 (filter (== (player,(x1,y1))) state) state (((x1,y1),_):xs) player
+
+-- filtered slides to a list of slides where the players piece can move, not taking into whether tile is empty
+validSlideMoves2 ((player,point1):xs) state ((point1,point2):xs) player 
+    = validSlideMoves3 (filter (== (point1,_)) ((point1,point2):xs)) state
+
+-- filtering slides to list where the the tiles are empty
+validSlideMoves3 filteredslides state = filter 									 
 
 --
 -- boardEvaluator
