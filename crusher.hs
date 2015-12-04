@@ -172,8 +172,19 @@ board0 = sTrToBoard "WWW-WW-------BB-BBB"
 -- Returns: True if the board is in a state where the game has ended, otherwise False
 --
 
--- gameOver :: Board -> [Board] -> Int -> Bool
--- gameOver board history n = -- To Be Completed
+gameOver :: Board -> [Board] -> Int -> Bool
+gameOver board history n
+    | elem board history    = True
+    | numW < n              = True
+    | numB < n              = True
+    | otherwise             = False
+    where
+        numW = (length (filter (== W) board))
+        numB = (length (filter (== B) board))
+
+
+
+
 
 --
 -- sTrToBoard
