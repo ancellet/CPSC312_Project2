@@ -309,8 +309,23 @@ validSlide grid (_,(x,y)) = elem (x,y) grid
 -- Returns: the list of all Jumps possible on the given grid
 --
 
--- generateLeaps :: Grid -> Int -> [Jump]
--- generateLeaps b n = -- To Be Completed
+generateLeaps :: Grid -> Int -> [Jump]
+generateLeaps b n = filter (validJump b) (generateAllJumps b n)
+
+generateAllJumps :: Grid -> Int -> [Jump]
+generateAllJumps ((x,y):xs) n
+    | null xs = []
+    | otherwise = (generatePossibleJumps (x,y) n) ++ (generateAllJumps xs n)
+
+-- may need some more work
+generatePossibleJumps :: Point -> Int -> [Jump]
+generatePossibleJumps (x,y) n
+    | y == n-1 = [((x,y),(x,y+1),(x,y+2)),((x,y),(x+1,y),(x+2,y)),((x,y),(x-1,y),(x-2,y)),((x,y),(x,y-1),(x,y-2)),((x,y),(x-1,y+1),(x-2,y+2)),((x,y),(x-1,y-1),(x-2,y-2))]
+    | y < n-1 = [((x,y),(x+1,y+1),(x+2,y+2)),((x,y),(x+1,y),(x+2,y)),((x,y),(x-1,y),(x-2,y)),((x,y),(x,y-1),(x,y-2)),((x,y),(x,y+1),(x-1,y+2)),((x,y),(x-1,y-1),(x-2,y-2))]
+    | y > n-1 = [((x,y),(x,y+1),(x,y+2)),((x,y),(x+1,y),(x+2,y)),((x,y),(x-1,y),(x-2,y)),((x,y),(x,y-1),(x-1,y-2)),((x,y),(x-1,y+1),(x-2,y+2)),((x,y),(x+1,y-1),(x+1,y-2))]
+
+validJump :: Grid -> Jump -> Bool
+validJump grid (_, (x,y), (a,b)) = (elem (x,y) grid) && (elem (a,b) grid)
 
 --
 -- stateSearch
