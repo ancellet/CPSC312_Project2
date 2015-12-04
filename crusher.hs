@@ -133,6 +133,7 @@ slides0 = generateSlides grid0 3
 slides1 = generateSlides grid1 2
 jumps0 = generateLeaps grid0 3
 jumps1 = generateLeaps grid1 2
+board1 = sTrToBoard "WW---BB"
 board0 = sTrToBoard "WWW-WW-------BB-BBB"
 newBoards0 = generateNewStates board0 [] grid0 slides0 jumps0 W
 -- tree0 = generateTree board0 [] grid0 slides0 jumps0 W 4 3
@@ -418,8 +419,23 @@ validLeap grid (_,_,(x,y)) = elem (x,y) grid
 -- Returns: the corresponding BoardTree generated till specified depth
 --
 
--- generateTree :: Board -> [Board] -> Grid -> [Slide] -> [Jump] -> Piece -> Int -> Int -> BoardTree
--- generateTree board history grid slides jumps player depth n = -- To Be Completed
+generateTree :: Board -> [Board] -> Grid -> [Slide] -> [Jump] -> Piece -> Int -> Int -> BoardTree
+generateTree board history grid slides jumps player depth n = generateTree_h board history grid slides jumps player depth 0 n
+
+generateTree_h :: Board -> [Board] -> Grid -> [Slide] -> [Jump] -> Piece -> Int -> Int -> Int -> BoardTree
+generateTree_h board history grid slides jumps player depth curr n  
+    | curr == depth = Node curr board []
+    | otherwise     = Node curr board restTree
+    where
+        nextBoards = generateNewStates board history grid slides jumps player
+        generate x = generateTree_h x history grid slides jumps (nextPlayer player) depth (curr+1) n
+        restTree = map generate nextBoards
+
+nextPlayer :: Piece -> Piece
+nextPlayer player
+    | W == player   = B
+    | B == player   = W
+
 
 --
 -- generateNewStates
