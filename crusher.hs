@@ -27,9 +27,9 @@ data Piece = D | W | B deriving (Eq, Show)
 type Point = (Int, Int)
 
 --
--- Tile is a tuple of 2 elements 
+-- Tile is a tuple of 2 elements
 -- representing what a point is occupied by
--- where the first element represents a piece 
+-- where the first element represents a piece
 --       the second element represents a point
 --
 
@@ -45,7 +45,7 @@ type Board = [Piece]
 
 --
 -- Grid is a list of Points, thus it is an internal representation
--- of the hexagonal grid system translated into a coordinate 
+-- of the hexagonal grid system translated into a coordinate
 -- system to easily maintain and make moves on the board
 --
 
@@ -128,8 +128,11 @@ type Move = (Point,Point)
 --
 -- run = crusher ["W------------BB-BBB","----W--------BB-BBB","-W-----------BB-BBB"] 'W' 2 3
 grid0 = generateGrid 3 2 4 []
+grid1 = generateGrid 2 1 2 []
 slides0 = generateSlides grid0 3
--- jumps0 = generateLeaps grid0 3
+slides1 = generateSlides grid1 2
+jumps0 = generateLeaps grid0 3
+jumps1 = generateLeaps grid1 2
 board0 = sTrToBoard "WWW-WW-------BB-BBB"
 -- newBoards0 = generateNewStates board0 [] grid0 slides0 jumps0 W
 -- tree0 = generateTree board0 [] grid0 slides0 jumps0 W 4 3
@@ -203,10 +206,10 @@ gameOver board history n
 
 sTrToBoard :: String  -> Board
 sTrToBoard s = map (\ x -> check x) s
-	where 
-		check 'W' = W
-		check 'B' = B
-		check '-' = D
+  where 
+    check 'W' = W
+    check 'B' = B
+    check '-' = D
 
 --
 -- boardToStr
@@ -225,10 +228,10 @@ sTrToBoard s = map (\ x -> check x) s
 
 boardToStr :: Board -> String
 boardToStr b = map (\ x -> check x) b
-	where 
-		check W = 'W'
-		check B = 'B'
-		check D = '-'
+  where 
+    check W = 'W'
+    check B = 'B'
+    check D = '-'
 
 --
 -- generateGrid
@@ -255,12 +258,12 @@ boardToStr b = map (\ x -> check x) b
 --
 
 generateGrid :: Int -> Int -> Int -> Grid -> Grid
-generateGrid n1 n2 n3 acc 
-	| n3 == -1		= acc
-	| otherwise 	= generateGrid nn1 (n2 - 1) (n3 - 1) (row ++ acc)
-		where
-			row = map (\ x -> (x,n3)) [0 .. (n1 - 1)]
-			nn1 = if n2 > 0 then n1 + 1 else n1 - 1
+generateGrid n1 n2 n3 acc
+  | n3 == -1 = acc
+  | otherwise  = generateGrid nn1 (n2 - 1) (n3 - 1) (row ++ acc)
+    where
+      row = map (\ x -> (x,n3)) [0 .. (n1 - 1)]
+      nn1 = if n2 > 0 then n1 + 1 else n1 - 1
 
 --
 -- generateSlides
@@ -285,17 +288,19 @@ generateGrid n1 n2 n3 acc
 generateSlides :: Grid -> Int -> [Slide]
 generateSlides b n = filter (validSlide b) (generateAllSlides b n)
 
+-- n: represents the dimensions of the grid
 generateAllSlides :: Grid -> Int -> [Slide]
-generateAllSlides ((x,y):xs) n
-	| null xs = []
-	| otherwise = (generatePossibleSlides (x,y) n) ++ (generateAllSlides xs n)
+generateAllSlides [] _ = []
+generateAllSlides ((x,y):xs) n  = (generatePossibleSlides (x,y) n) ++ (generateAllSlides xs n)
 
+-- Returns: the list of slides possible for a given tile
 generatePossibleSlides :: Point -> Int -> [Slide]
 generatePossibleSlides (x,y) n
-	| y == n - 1 = [((x,y),(x-1,y+1)),((x,y),(x+1,y)),((x,y),(x,y+1)),((x,y),(x-1,y-1)),((x,y),(x-1,y)),((x,y),(x,y-1))]
-	| y < n - 1 = [((x,y),(x+1,y+1)),((x,y),(x+1,y)),((x,y),(x,y+1)),((x,y),(x-1,y-1)),((x,y),(x-1,y)),((x,y),(x,y-1))]
-	| y > n - 1 = [((x,y),(x+1,y-1)),((x,y),(x+1,y)),((x,y),(x,y+1)),((x,y),(x-1,y)),((x,y),(x-1,y+1)),((x,y),(x,y-1))]
+  | y == n - 1 = [((x,y),(x-1,y+1)),((x,y),(x+1,y)),((x,y),(x,y+1)),((x,y),(x-1,y-1)),((x,y),(x-1,y)),((x,y),(x,y-1))]
+  | y < n - 1 = [((x,y),(x+1,y+1)),((x,y),(x+1,y)),((x,y),(x,y+1)),((x,y),(x-1,y-1)),((x,y),(x-1,y)),((x,y),(x,y-1))]
+  | y > n - 1 = [((x,y),(x+1,y-1)),((x,y),(x+1,y)),((x,y),(x,y+1)),((x,y),(x-1,y)),((x,y),(x-1,y+1)),((x,y),(x,y-1))]
 
+-- Returns: True if a slide is valid
 validSlide :: Grid -> Slide -> Bool
 validSlide grid (_,(x,y)) = elem (x,y) grid
 
@@ -320,8 +325,6 @@ validSlide grid (_,(x,y)) = elem (x,y) grid
 -- Returns: the list of all Jumps possible on the given grid
 --
 
-generateLeaps :: Grid -> Int -> [Jump]
-generateLeaps b n = filter (validJump b) (generateAllJumps b n)
 
 generateAllJumps :: Grid -> Int -> [Jump]
 generateAllJumps ((x,y):xs) n
@@ -338,6 +341,26 @@ generatePossibleJumps (x,y) n
 validJump :: Grid -> Jump -> Bool
 validJump grid (_, (x1,y1), (x2,y2)) = (elem (x1,y1) grid) && (elem (x2,y2) grid)
 
+generateLeaps :: Grid -> Int -> [Jump]
+generateLeaps b n = filter (validLeap b) (generateAllLeaps b n)
+-- n: represents the dimensions of the grid
+generateAllLeaps :: Grid -> Int -> [Jump]
+generateAllLeaps [] _ = []
+generateAllLeaps ((x,y):xs) n = (generatePossibleLeaps (x,y) n) ++ (generateAllLeaps xs n)
+
+-- Returns: the list of slides possible for a given tile
+generatePossibleLeaps :: Point -> Int -> [Jump]
+generatePossibleLeaps (x,y) n
+  | y == n - 1 = [((x,y),(x-1,y),(x-2,y)),((x,y),(x+1,y),(x+2,y)),((x,y),(x,y+1),(x,y+2)),((x,y),(x-1,y+1),(x-2,y+2)),((x,y),(x,y-1),(x,y-2)),((x,y),(x-1,y-1),(x-2,y-2))]
+  | y == n - 2 = [((x,y),(x-1,y),(x-2,y)),((x,y),(x+1,y),(x+2,y)),((x,y),(x+1,y+1),(x+1,y+2)),((x,y),(x,y+1),(x-1,y+2)),((x,y),(x,y-1),(x,y-2)),((x,y),(x-1,y-1),(x-2,y-2))]
+  | y == n = [((x,y),(x-1,y),(x-2,y)),((x,y),(x+1,y),(x+2,y)),((x,y),(x,y+1),(x,y+2)),((x,y),(x-1,y+1),(x-2,y+2)),((x,y),(x+1,y-1),(x+1,y-2)),((x,y),(x,y-1),(x-1,y-2))]
+  | y > n = [((x,y),(x-1,y),(x-2,y)),((x,y),(x+1,y),(x+2,y)),((x,y),(x,y+1),(x,y+2)),((x,y),(x-1,y+1),(x-2,y+2)),((x,y),(x+1,y-1),(x+2,y-2)),((x,y),(x,y-1),(x,y-2))]
+  | y < n - 2 = [((x,y),(x-1,y),(x-2,y)),((x,y),(x+1,y),(x+2,y)),((x,y),(x+1,y+1),(x+2,y+2)),((x,y),(x,y+1),(x,y+2)),((x,y),(x,y-1),(x,y-2)),((x,y),(x-1,y-1),(x-2,y-2))]
+
+-- Checks that the destination for the leap is in the board
+-- Returns: True if the move is valid (ie it ends on a piece)
+validLeap :: Grid -> Jump -> Bool
+validLeap grid (_,_,(x,y)) = elem (x,y) grid
 --
 -- stateSearch
 --
@@ -442,7 +465,7 @@ moveGenerator state slides jumps player =
                 moveGenerator_h state state slides jumps player
 
 moveGenerator_h :: State -> State -> [Slide] -> [Jump] -> Piece -> [Move]
-moveGenerator_h _ [] _	_ _ = []
+moveGenerator_h _ [] _ _ _ = []
 moveGenerator_h state ((piece,point):rest) slides jumps player
     | piece == player   = vS ++ vJ ++ moveGenerator_h state rest slides jumps player
     | otherwise         = moveGenerator_h state rest slides jumps player
@@ -515,15 +538,15 @@ validJumpMoves state ((first,center,end):rest) player
 
 boardEvaluator :: Piece -> Int -> Board -> Int
 boardEvaluator player n board
-	| (gameWonByPawnCount player n board)               = 10
-	| (gameWonByPawnCount (otherPlayer player) n board) = -10
-	| otherwise                                         = (calculateGoodnessValue player board)
+  | (gameWonByPawnCount player n board)               = 10
+  | (gameWonByPawnCount (otherPlayer player) n board) = -10
+  | otherwise                                         = (calculateGoodnessValue player board)
 
 -- returns the character of the opposite team
 otherPlayer :: Piece -> Piece
 otherPlayer player
-	| player == W = B
-	| otherwise     = W
+  | player == W = B
+  | otherwise     = W
 
 -- returns true if opposing player's pawns are less than n
 gameWonByPawnCount :: Piece -> Int -> Board -> Bool
@@ -532,7 +555,7 @@ gameWonByPawnCount player n board = n > (getPawnCount board (otherPlayer player)
 -- returns number of pawns on the board for the given player
 getPawnCount :: Board -> Piece -> Int
 getPawnCount board player 
-	= (length (filter (== player) board))
+  = (length (filter (== player) board))
 
 -- goodness value of provided board calculated by 
 -- taking the given player's number of pawns and 
@@ -540,7 +563,7 @@ getPawnCount board player
 -- simple heuristic, may need more work
 calculateGoodnessValue :: Piece -> Board -> Int
 calculateGoodnessValue player board =
-	((getPawnCount board player) - (getPawnCount board (otherPlayer player)))
+  ((getPawnCount board player) - (getPawnCount board (otherPlayer player)))
 
 --
 -- minimax
