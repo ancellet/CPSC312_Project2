@@ -438,13 +438,60 @@ validJump grid (_, (x1,y1), (x2,y2)) = (elem (x1,y1) grid) && (elem (x2,y2) grid
 --
 
 moveGenerator :: State -> [Slide] -> [Jump] -> Piece -> [Move]
-moveGenerator state slides jumps player = -- To Be Completed
+moveGenerator state slides jumps player = 
+                moveGenerator_h state state slides jumps player
 
 moveGenerator_h :: State -> State -> [Slide] -> [Jump] -> Piece -> [Move]
 moveGenerator_h _ [] _	_ _ = []
 moveGenerator_h state ((piece,point):rest) slides jumps player
-    | piece == player   = --
-    | otherwise         = moveGenerator_h state rest slides jumps player									 
+    | piece == player   = vS ++ vJ ++ moveGenerator_h state rest slides jumps player
+    | otherwise         = moveGenerator_h state rest slides jumps player
+    where
+        relevSlides = filter ((==point).fst) slides
+        vS = validSlideMoves state relevSlides
+        relevJumps = filter (\(x,_,_) -> x == point ) jumps
+        vJ = validJumpMoves state relevJumps player
+    
+
+--
+-- validSlideMoves
+--
+-- Args:
+-- -- State: state of the current board
+-- -- [Slide]: list of possible slide moves that have already been filtered
+-- --           based on the existence of a player piece
+--
+-- Returns the possible slides
+validSlideMoves :: State -> [Slide] -> [Move]
+validSlideMoves _ [] = []
+validSlideMoves state ((first,point):rest)
+    | piece == D    = (first,point) : validSlideMoves state rest
+    | otherwise     = validSlideMoves state rest
+    where
+        ((piece,_):_) = filter ((==point).snd) state
+
+--
+-- validJumpMoves
+--
+-- Args:
+-- -- State:    state of the current board
+-- -- [Jumps]:  list of possible jump moves that have already been filtered 
+-- --               based on the existence of a player piece
+-- -- Player:   current player
+-- 
+-- Returns possible jumps after checking that another player piece is in
+--  center and the end tile doesn't contain another player piece
+validJumpMoves :: State -> [Jump] -> Piece -> [Move]
+validJumpMoves _ [] _ = []
+validJumpMoves state ((first,center,end):rest) player
+    | valid     = (first,end) : validJumpMoves state rest player
+    | otherwise = validJumpMoves state rest player
+    where
+        ((c_piece,_):_) = filter ((==center).snd) state
+        ((e_piece,_):_) = filter ((==end).snd) state
+        valid = c_piece == player && e_piece /= player  -- checks center tile
+                                                        -- has player and end
+                                                        -- tile is either op/D
 
 
 --
