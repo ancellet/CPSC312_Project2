@@ -272,7 +272,7 @@ generateGrid n1 n2 n3 acc
 --
 
 generateSlides :: Grid -> Int -> [Slide]
-generateSlides b n = filter (validSlide b) (generateAllSlides b)
+generateSlides b n = filter (validSlide b) (generateAllSlides b n)
 
 generateAllSlides :: Grid -> Grid -> [Slide]
 generateAllSlides ((x,y):xs)
@@ -280,8 +280,8 @@ generateAllSlides ((x,y):xs)
 	| otherwise concat[generatePossibleSlides (x,y), generateAllSlides xs]
 
 generatePossibleSlides :: Point -> [Slide]
-generatePossibleSlides (a,b) =
-	[((x,y),(x+1,y+1)),((x,y),(x+1,y)),((x,y),(x,y+1)),((x,y),(x-1,y-1)),((x,y),(x-1,y)),((x,y),(x,y-1))]
+generatePossibleSlides (x,y) n =
+	n [((x,y),(x+1,y+1)),((x,y),(x+1,y)),((x,y),(x,y+1)),((x,y),(x-1,y-1)),((x,y),(x-1,y)),((x,y),(x,y-1))]
 
 validSlide :: Grid -> Slide -> Bool
 validSlide grid (_,(x,y)) = elem (x,y) grid
