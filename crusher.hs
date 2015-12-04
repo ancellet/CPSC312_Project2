@@ -459,19 +459,28 @@ generateNewStates board history grid slides jumps player = newBoards
 -- -- rest: the rest of the valid moves on the board
 --
 -- Returns list of new boards from current state
--- Assumes all moves are valid moves (Hence warning for pattern matching is ok)
+-- Assumes all moves are valid moves
 generateNewStates_h :: State -> [Board] -> Piece -> [Move] -> [Board]
+
 generateNewStates_h _ _ _ [] = []       -- no more moves left
-generateNewStates_h state history player (curr:rest)
+generateNewStates_h state history player ((p1,p2):rest)
     | elem newBoard history = generateNewStates_h state history player rest
     | otherwise             = newBoard : 
                             generateNewStates_h state history player rest
     where
-        repl (player, (fst curr)) = (D, (fst curr))
-        --repl (_,second) = (player,second)
-        repl x  = x
+        repl x = tileReplace p1 p2 x player
         newState = map repl state       -- reflect move in new state
         newBoard = map fst newState     -- turn state into a board
+
+--
+-- tileReplace
+--
+-- Helper function for mapping current state into new states
+tileReplace :: Point -> Point -> Tile -> Piece -> Tile
+tileReplace p1 p2 (piece, point) player
+    | p1 == point   = (D, point)
+    | p2 == point   = (player, point)
+    | otherwise     = (piece, point)
 
 --
 -- moveGenerator
