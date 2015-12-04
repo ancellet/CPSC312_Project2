@@ -341,14 +341,24 @@ generatePossibleJumps (x,y) n
 validJump :: Grid -> Jump -> Bool
 validJump grid (_, (x1,y1), (x2,y2)) = (elem (x1,y1) grid) && (elem (x2,y2) grid)
 
+-- Creates a list of all possible and valid leaps.
+-- It generates every possible leap from all the positions on the grid, and
+-- then filters that list so that only valid leaps remain
+-- Returns: A list of all valid jumps
 generateLeaps :: Grid -> Int -> [Jump]
 generateLeaps b n = filter (validLeap b) (generateAllLeaps b n)
+
+
 -- n: represents the dimensions of the grid
+-- Retuns: A list of all possible jumps
 generateAllLeaps :: Grid -> Int -> [Jump]
 generateAllLeaps [] _ = []
 generateAllLeaps ((x,y):xs) n = (generatePossibleLeaps (x,y) n) ++ (generateAllLeaps xs n)
 
--- Returns: the list of slides possible for a given tile
+-- It generates a list of leaps whoe movement depends on their position on
+-- the board in relation to the vertical halfway point of the board (ie
+-- positon n-1)
+-- Returns: the list of leaps possible for a given tile
 generatePossibleLeaps :: Point -> Int -> [Jump]
 generatePossibleLeaps (x,y) n
   | y == n - 1 = [((x,y),(x-1,y),(x-2,y)),((x,y),(x+1,y),(x+2,y)),((x,y),(x,y+1),(x,y+2)),((x,y),(x-1,y+1),(x-2,y+2)),((x,y),(x,y-1),(x,y-2)),((x,y),(x-1,y-1),(x-2,y-2))]
