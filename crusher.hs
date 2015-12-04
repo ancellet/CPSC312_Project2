@@ -437,8 +437,15 @@ validJump grid (_, (x1,y1), (x2,y2)) = (elem (x1,y1) grid) && (elem (x2,y2) grid
 -- Returns: the list of all valid moves that the player could make
 --
 
--- moveGenerator :: State -> [Slide] -> [Jump] -> Piece -> [Move]
--- moveGenerator state slides jumps player = -- To Be Completed										 
+moveGenerator :: State -> [Slide] -> [Jump] -> Piece -> [Move]
+moveGenerator state slides jumps player = -- To Be Completed
+
+moveGenerator_h :: State -> State -> [Slide] -> [Jump] -> Piece -> [Move]
+moveGenerator_h _ [] _	_ _ = []
+moveGenerator_h state ((piece,point):rest) slides jumps player
+    | piece == player   = --
+    | otherwise         = moveGenerator_h state rest slides jumps player									 
+
 
 --
 -- boardEvaluator
