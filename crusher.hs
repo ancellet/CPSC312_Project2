@@ -203,10 +203,10 @@ gameOver board history n
 
 sTrToBoard :: String  -> Board
 sTrToBoard s = map (\ x -> check x) s
-	where 
-		check 'W' = W
-		check 'B' = B
-		check '-' = D
+    where 
+        check 'W' = W
+        check 'B' = B
+        check '-' = D
 
 --
 -- boardToStr
@@ -225,10 +225,10 @@ sTrToBoard s = map (\ x -> check x) s
 
 boardToStr :: Board -> String
 boardToStr b = map (\ x -> check x) b
-	where 
-		check W = 'W'
-		check B = 'B'
-		check D = '-'
+    where 
+        check W = 'W'
+        check B = 'B'
+        check D = '-'
 
 --
 -- generateGrid
@@ -256,11 +256,11 @@ boardToStr b = map (\ x -> check x) b
 
 generateGrid :: Int -> Int -> Int -> Grid -> Grid
 generateGrid n1 n2 n3 acc 
-	| n3 == -1		= acc
-	| otherwise 	= generateGrid nn1 (n2 - 1) (n3 - 1) (row ++ acc)
-		where
-			row = map (\ x -> (x,n3)) [0 .. (n1 - 1)]
-			nn1 = if n2 > 0 then n1 + 1 else n1 - 1
+    | n3 == -1      = acc
+    | otherwise     = generateGrid nn1 (n2 - 1) (n3 - 1) (row ++ acc)
+        where
+            row = map (\ x -> (x,n3)) [0 .. (n1 - 1)]
+            nn1 = if n2 > 0 then n1 + 1 else n1 - 1
 
 --
 -- generateSlides
@@ -287,14 +287,14 @@ generateSlides b n = filter (validSlide b) (generateAllSlides b n)
 
 generateAllSlides :: Grid -> Int -> [Slide]
 generateAllSlides ((x,y):xs) n
-	| null xs = []
-	| otherwise = (generatePossibleSlides (x,y) n) ++ (generateAllSlides xs n)
+    | null xs = []
+    | otherwise = (generatePossibleSlides (x,y) n) ++ (generateAllSlides xs n)
 
 generatePossibleSlides :: Point -> Int -> [Slide]
 generatePossibleSlides (x,y) n
-	| y == n - 1 = [((x,y),(x-1,y+1)),((x,y),(x+1,y)),((x,y),(x,y+1)),((x,y),(x-1,y-1)),((x,y),(x-1,y)),((x,y),(x,y-1))]
-	| y < n - 1 = [((x,y),(x+1,y+1)),((x,y),(x+1,y)),((x,y),(x,y+1)),((x,y),(x-1,y-1)),((x,y),(x-1,y)),((x,y),(x,y-1))]
-	| y > n - 1 = [((x,y),(x+1,y-1)),((x,y),(x+1,y)),((x,y),(x,y+1)),((x,y),(x-1,y)),((x,y),(x-1,y+1)),((x,y),(x,y-1))]
+    | y == n - 1 = [((x,y),(x-1,y+1)),((x,y),(x+1,y)),((x,y),(x,y+1)),((x,y),(x-1,y-1)),((x,y),(x-1,y)),((x,y),(x,y-1))]
+    | y < n - 1 = [((x,y),(x+1,y+1)),((x,y),(x+1,y)),((x,y),(x,y+1)),((x,y),(x-1,y-1)),((x,y),(x-1,y)),((x,y),(x,y-1))]
+    | y > n - 1 = [((x,y),(x+1,y-1)),((x,y),(x+1,y)),((x,y),(x,y+1)),((x,y),(x-1,y)),((x,y),(x-1,y+1)),((x,y),(x,y-1))]
 
 validSlide :: Grid -> Slide -> Bool
 validSlide grid (_,(x,y)) = elem (x,y) grid
@@ -407,8 +407,37 @@ validJump grid (_, (x1,y1), (x2,y2)) = (elem (x1,y1) grid) && (elem (x2,y2) grid
 -- Returns: the list of next boards
 --
 
--- generateNewStates :: Board -> [Board] -> Grid -> [Slide] -> [Jump] -> Piece -> [Board]
--- generateNewStates board history grid slides jumps player = -- To Be Completed
+generateNewStates :: Board -> [Board] -> Grid -> [Slide] -> [Jump] -> Piece -> [Board]
+generateNewStates board history grid slides jumps player = newBoards
+    where
+        state = zip board grid
+        moves = moveGenerator state slides jumps player
+        newBoards = generateNewStates_h state history player moves
+
+--
+-- generateNewStates_h
+-- 
+-- Args
+-- -- state: the state of current board
+-- -- history: previously seen boards
+-- -- player: the current player's piece
+-- -- first: the point from where player's piece moves
+-- -- second: the point where player's piece lands
+-- -- rest: the rest of the valid moves on the board
+--
+-- Returns list of new boards from current state
+-- Assumes all moves are valid moves (Hence warning for pattern matching is ok)
+generateNewStates_h :: State -> [Board] -> Piece -> [Move] -> [Board]
+generateNewStates_h _ _ _ [] = []       -- no more moves left
+generateNewStates_h state history player ((first,second):rest)
+    | elem newBoard history = generateNewStates_h state history player rest
+    | otherwise             = newBoard : 
+                            generateNewStates_h state history player rest
+    where
+        repl (player, first) = (D,first)
+        repl (_,second) = (player,second)
+        newState = map repl state       -- reflect move in new state
+        newBoard = map fst newState     -- turn state into a board
 
 --
 -- moveGenerator
@@ -442,7 +471,7 @@ moveGenerator state slides jumps player =
                 moveGenerator_h state state slides jumps player
 
 moveGenerator_h :: State -> State -> [Slide] -> [Jump] -> Piece -> [Move]
-moveGenerator_h _ [] _	_ _ = []
+moveGenerator_h _ [] _ _ _ = []
 moveGenerator_h state ((piece,point):rest) slides jumps player
     | piece == player   = vS ++ vJ ++ moveGenerator_h state rest slides jumps player
     | otherwise         = moveGenerator_h state rest slides jumps player
@@ -515,15 +544,15 @@ validJumpMoves state ((first,center,end):rest) player
 
 boardEvaluator :: Piece -> Int -> Board -> Int
 boardEvaluator player n board
-	| (gameWonByPawnCount player n board)               = 10
-	| (gameWonByPawnCount (otherPlayer player) n board) = -10
-	| otherwise                                         = (calculateGoodnessValue player board)
+    | (gameWonByPawnCount player n board)               = 10
+    | (gameWonByPawnCount (otherPlayer player) n board) = -10
+    | otherwise                                         = (calculateGoodnessValue player board)
 
 -- returns the character of the opposite team
 otherPlayer :: Piece -> Piece
 otherPlayer player
-	| player == W = B
-	| otherwise     = W
+    | player == W = B
+    | otherwise     = W
 
 -- returns true if opposing player's pawns are less than n
 gameWonByPawnCount :: Piece -> Int -> Board -> Bool
@@ -532,7 +561,7 @@ gameWonByPawnCount player n board = n > (getPawnCount board (otherPlayer player)
 -- returns number of pawns on the board for the given player
 getPawnCount :: Board -> Piece -> Int
 getPawnCount board player 
-	= (length (filter (== player) board))
+    = (length (filter (== player) board))
 
 -- goodness value of provided board calculated by 
 -- taking the given player's number of pawns and 
@@ -540,7 +569,7 @@ getPawnCount board player
 -- simple heuristic, may need more work
 calculateGoodnessValue :: Piece -> Board -> Int
 calculateGoodnessValue player board =
-	((getPawnCount board player) - (getPawnCount board (otherPlayer player)))
+    ((getPawnCount board player) - (getPawnCount board (otherPlayer player)))
 
 --
 -- minimax
