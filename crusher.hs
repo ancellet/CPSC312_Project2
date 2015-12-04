@@ -325,7 +325,7 @@ generatePossibleJumps (x,y) n
     | y > n-1 = [((x,y),(x,y+1),(x,y+2)),((x,y),(x+1,y),(x+2,y)),((x,y),(x-1,y),(x-2,y)),((x,y),(x,y-1),(x-1,y-2)),((x,y),(x-1,y+1),(x-2,y+2)),((x,y),(x+1,y-1),(x+1,y-2))]
 
 validJump :: Grid -> Jump -> Bool
-validJump grid (_, (x,y), (a,b)) = (elem (x,y) grid) && (elem (a,b) grid)
+validJump grid (_, (x1,y1), (x2,y2)) = (elem (x1,y1) grid) && (elem (x2,y2) grid)
 
 --
 -- stateSearch
