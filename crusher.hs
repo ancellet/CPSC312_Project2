@@ -272,7 +272,7 @@ generateGrid n1 n2 n3 acc
 --
 
 generateSlides :: Grid -> Int -> [Slide]
-generateSlides b n = filter (validSlide b) (generateAllSlides grid)
+generateSlides b n = filter (validSlide b) (generateAllSlides b)
 
 generateAllSlides :: Grid -> Grid -> [Slide]
 generateAllSlides ((a,b):xs)
