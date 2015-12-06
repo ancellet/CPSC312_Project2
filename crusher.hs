@@ -1,6 +1,16 @@
 -- CPSC 312 - Project 2
 -- by Khurram Ali Jaffery
 
+-- Geoff Shaw, 38762118, w3c9
+-- Ancelle Tache, 35967116, r3d8
+-- Ryan Quong, 42183137, g4w9a
+
+-- SOME INFO
+-- run adds an empty string onto the history because the game is over
+-- run0 starts from the beginning of the game and returns a nice history
+
+
+
 -- Main Components:
 -- minimax algorithm
 -- a board evaluator
@@ -424,6 +434,11 @@ stateSearch board history grid slides jumps player depth num = minimax boardTree
 generateTree :: Board -> [Board] -> Grid -> [Slide] -> [Jump] -> Piece -> Int -> Int -> BoardTree
 generateTree board history grid slides jumps player depth n = generateTree_h board history grid slides jumps player depth 0 n
 
+
+-- The helper that actually does the recursion
+-- If game is over for the current board, returns just one Node
+-- If depth has been acheived, returns just one Node
+--  otherwise returns the Node for current board and Nodes for its children
 generateTree_h :: Board -> [Board] -> Grid -> [Slide] -> [Jump] -> Piece -> Int -> Int -> Int -> BoardTree
 generateTree_h board history grid slides jumps player depth curr n  
     | curr == depth             = Node curr board []
@@ -704,6 +719,7 @@ minimax' (Node _ _ children) heuristic maxPlayer
             mini x = minimax' x heuristic (changemax maxPlayer)
             scores = map mini children
 
+-- Helper function for minimax'
 changemax :: Bool -> Bool
 changemax val
     | val == True   = False
