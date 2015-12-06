@@ -6,7 +6,7 @@
 -- a board evaluator
 -- state search
 -- movement generators (and by extension, tree generator, new state generator)
--- crusher
+-- crushe/
 -- custom data types (already done)
 
 -- Piece is a data representation of possible pieces on a board
@@ -126,7 +126,8 @@ type Move = (Point,Point)
 --
 -- Some test results to see what functions are producing 
 --
--- run = crusher ["W------------BB-BBB","----W--------BB-BBB","-W-----------BB-BBB"] 'W' 2 3
+run = crusher ["W------------BB-BBB","----W--------BB-BBB","-W-----------BB-BBB"] 'W' 2 3
+run0 = crusher ["WWW-WW-------BB-BBB"] 'W' 2 3
 grid0 = generateGrid 3 2 4 []
 grid1 = generateGrid 2 1 2 []
 slides0 = generateSlides grid0 3
@@ -136,9 +137,10 @@ jumps1 = generateLeaps grid1 2
 board1 = sTrToBoard "WW---BB"
 board0 = sTrToBoard "WWW-WW-------BB-BBB"
 newBoards0 = generateNewStates board0 [] grid0 slides0 jumps0 W
--- tree0 = generateTree board0 [] grid0 slides0 jumps0 W 4 3
+tree0 = generateTree board0 [] grid0 slides0 jumps0 W 4 3
 -- heuristic0 = boardEvaluator W [] 3
 
+state0 = stateSearch board0 [] grid0 slides0 jumps0 W 2 2
 --
 -- crusher
 --
@@ -157,8 +159,21 @@ newBoards0 = generateNewStates board0 [] grid0 slides0 jumps0 W
 -- Returns: a list of String with the new current board consed onto the front
 --
 
--- crusher :: [String] -> Char -> Int -> Int -> [String]
--- crusher (current:old) p d n = -- To Be Completed
+crusher :: [String] -> Char -> Int -> Int -> [String]
+crusher (current:old) p d n = map boardToStr (nextBoard:board:history)
+    where
+        board = sTrToBoard current
+        history = map sTrToBoard old
+        player = getPlayer p
+        grid = generateGrid n (n-1) (2 * (n-1)) [] 
+        slides = generateSlides grid n
+        jumps = generateLeaps grid n
+        nextBoard = stateSearch board history grid slides jumps player d n
+ 
+
+getPlayer :: Char -> Piece
+getPlayer 'W'   = W
+getPlayer 'B'   = B
 
 --
 -- gameOver
@@ -379,8 +394,11 @@ validLeap grid (_,_,(x,y)) = elem (x,y) grid
 --          otherwise produces the next best board
 --
 
--- stateSearch :: Board -> [Board] -> Grid -> [Slide] -> [Jump] -> Piece -> Int -> Int -> Board
--- stateSearch board history grid slides jumps player depth num = -- To Be Completed
+stateSearch :: Board -> [Board] -> Grid -> [Slide] -> [Jump] -> Piece -> Int -> Int -> Board
+stateSearch board history grid slides jumps player depth num = minimax boardTree heuristic
+    where
+        boardTree = generateTree board history grid slides jumps player depth num
+        heuristic b _ = boardEvaluator player num b
 
 --
 -- generateTree
@@ -408,11 +426,12 @@ generateTree board history grid slides jumps player depth n = generateTree_h boa
 
 generateTree_h :: Board -> [Board] -> Grid -> [Slide] -> [Jump] -> Piece -> Int -> Int -> Int -> BoardTree
 generateTree_h board history grid slides jumps player depth curr n  
-    | curr == depth = Node curr board []
-    | otherwise     = Node curr board restTree
+    | curr == depth             = Node curr board []
+    | gameOver board history n  = Node curr board []
+    | otherwise                 = Node curr board restTree
     where
         nextBoards = generateNewStates board history grid slides jumps player
-        generate x = generateTree_h x history grid slides jumps (nextPlayer player) depth (curr+1) n
+        generate x = generateTree_h x (x:history) grid slides jumps (nextPlayer player) depth (curr+1) n
         restTree = map generate nextBoards
 
 nextPlayer :: Piece -> Piece
@@ -630,9 +649,30 @@ calculateGoodnessValue player board =
 -- Returns: the next best board
 --
 
--- minimax :: BoardTree -> (Board -> Bool -> Int) -> Board
--- minimax (Node _ b children) heuristic = -- To Be Completed
+minimax :: BoardTree -> (Board -> Bool -> Int) -> Board
+minimax (Node _ b children) heuristic = getMaxBoard scoredBoards
+    where
+        mini x = minimax' x heuristic True
+        scores = map mini children
+        getBoards (Node _ board _) = board
+        potentialBoards =  map getBoards children
+        scoredBoards = zip potentialBoards scores
 
+--
+-- getMaxBoard
+-- From a list of (Board,Int) where Int is the corresponding score
+-- Returns the best choice for player
+getMaxBoard :: [(Board, Int)] -> Board
+getMaxBoard []  = []
+getMaxBoard ((board, score):rest) = getMaxBoard' ((board, score):rest) board score
+
+getMaxBoard' :: [(Board,Int)] -> Board -> Int -> Board
+getMaxBoard' [] board _ = board     -- Iterated through all potential boards
+getMaxBoard' ((board, score):rest) currBoard currScore
+    | score > currScore = getMaxBoard' rest board score
+    | otherwise         = getMaxBoard' rest currBoard currScore
+     
+        
 --
 -- minimax'
 --
@@ -653,8 +693,19 @@ calculateGoodnessValue player board =
 --
 -- Returns: the minimax value at the top of the tree
 --
+-- True if maximizing, False if minimizing
 
--- minimax' :: BoardTree -> (Board -> Bool -> Int) -> Bool -> Int
--- minimax' boardTree heuristic maxPlayer = -- To Be Completed
+minimax' :: BoardTree -> (Board -> Bool -> Int) -> Bool -> Int
+minimax' (Node _ board []) heuristic maxPlayer = (heuristic board maxPlayer)
+minimax' (Node _ _ children) heuristic maxPlayer
+    | maxPlayer == True = maximum scores
+    | otherwise         = minimum scores
+        where
+            mini x = minimax' x heuristic (changemax maxPlayer)
+            scores = map mini children
 
+changemax :: Bool -> Bool
+changemax val
+    | val == True   = False
+    | val == False  = True
 
